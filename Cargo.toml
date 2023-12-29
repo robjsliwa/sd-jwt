@@ -7,7 +7,7 @@ readme = "README.md"
 description = "SD-JWT support for Issuers, Holders, and Verifiers"
 homepage = "https://github.com/robjsliwa/sd-jwt"
 repository = "https://github.com/robjsliwa/sd-jwt"
-keywords = ["sd-jwt", "sdjwt", "token", "sd_jwt", "selective disclosure"]
+keywords = ["sd-jwt", "sdjwt", "token", "sd_jwt"]
 edition = "2021"
 
 [dependencies]
