@@ -16,7 +16,7 @@ use serde_json::Value;
 /// Example
 ///
 /// ```
-/// use sd_jwt::{Verifier, KeyForDecoding, Validation, Error};
+/// use sdjwt::{Verifier, KeyForDecoding, Validation, Error};
 /// use std::collections::HashSet;
 ///
 /// const ISSUER_PUBKEY: &str = "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA07aCbyrCS2/qYkuOyznaU/vQdobGtz/SvUKSzx4ic9Ax+pGi8OJM\noewxNg/6zFWkZeuZ1NMQMd/3aJLH+L+SqBNDox8cjWSzgR/Gf8xjVpMNiFrxrTx3\nz1ABaYfgsiDW/PhgoXCC7vF2dqLPTVBuObwmULjgmvPDFKUGEu9w/t05FaT+sccv\n2sMw1b8grlqG392etgbjKcvy29qG8Okj+CVPmYUe69Ce87mUOM5H4S9SF/yNLoFU\nczkUHQSa+sWe+QG6RskKay+3xophsMYYk4g4RHZuArg2LUvlDObmv/rsxKOVE3/B\nzV1DDjLs3AhHTwow2qCkFEZFof1dVOIjNwIDAQAB\n-----END RSA PUBLIC KEY-----\n";
@@ -103,7 +103,7 @@ impl Verifier {
     /// Example
     ///
     /// ```
-    /// use sd_jwt::{Verifier, KeyForDecoding, Validation, Error};
+    /// use sdjwt::{Verifier, KeyForDecoding, Validation, Error};
     /// use std::collections::HashSet;
     ///
     /// const ISSUER_PUBKEY: &str = "-----BEGIN RSA PUBLIC KEY-----\nMIIBCgKCAQEA07aCbyrCS2/qYkuOyznaU/vQdobGtz/SvUKSzx4ic9Ax+pGi8OJM\noewxNg/6zFWkZeuZ1NMQMd/3aJLH+L+SqBNDox8cjWSzgR/Gf8xjVpMNiFrxrTx3\nz1ABaYfgsiDW/PhgoXCC7vF2dqLPTVBuObwmULjgmvPDFKUGEu9w/t05FaT+sccv\n2sMw1b8grlqG392etgbjKcvy29qG8Okj+CVPmYUe69Ce87mUOM5H4S9SF/yNLoFU\nczkUHQSa+sWe+QG6RskKay+3xophsMYYk4g4RHZuArg2LUvlDObmv/rsxKOVE3/B\nzV1DDjLs3AhHTwow2qCkFEZFof1dVOIjNwIDAQAB\n-----END RSA PUBLIC KEY-----\n";

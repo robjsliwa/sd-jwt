@@ -1,5 +1,5 @@
 [package]
-name = "sd-jwt"
+name = "sdjwt"
 version = "0.7.0"
 authors = ["Rob Sliwa <robjsliwa@gmail.com>"]
 license = "MIT"

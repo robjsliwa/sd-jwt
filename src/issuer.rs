@@ -17,14 +17,12 @@ use std::vec;
 ///
 /// - Creating new issuers with custom claims.
 /// - Marking claims as disclosable.
-/// - Configuring JWT headers.
-/// - Setting expiration time for the token.
 /// - Optionally requiring a key binding.
 /// - Encoding the issuer's claims into a SD-JWT.
 ///
 /// Example:
 /// ```
-/// use sd_jwt::{Issuer, Jwk, Error, KeyForEncoding};
+/// use sdjwt::{Issuer, Jwk, Error, KeyForEncoding};
 /// use serde_json::Value;
 ///
 /// const ISSUER_CLAIMS: &str = r#"{
@@ -99,7 +97,7 @@ impl Issuer {
     /// # Examples
     ///
     /// ```
-    /// use sd_jwt::Issuer;
+    /// use sdjwt::Issuer;
     ///
     /// let claims = serde_json::json!({
     ///    "sub": "user_42",
@@ -131,7 +129,7 @@ impl Issuer {
     /// # Examples
     ///
     /// ```
-    /// use sd_jwt::Issuer;
+    /// use sdjwt::Issuer;
     ///
     /// let claims = serde_json::json!({
     ///    "sub": "user_42",
@@ -176,7 +174,7 @@ impl Issuer {
     /// # Examples
     ///
     /// ```
-    /// use sd_jwt::{Issuer, Header};
+    /// use sdjwt::{Issuer, Header};
     ///
     /// let mut header = Header::default();
     /// header.typ = Some("application/example+sd-jwt".to_string());
@@ -207,7 +205,7 @@ impl Issuer {
     /// # Examples
     ///
     /// ```
-    /// use sd_jwt::Issuer;
+    /// use sdjwt::Issuer;
     ///
     /// let claims = serde_json::json!({
     ///    "sub": "user_42",
@@ -239,7 +237,7 @@ impl Issuer {
     /// # Examples
     ///
     /// ```
-    /// use sd_jwt::{Issuer, Jwk};
+    /// use sdjwt::{Issuer, Jwk};
     ///
     /// let claims = serde_json::json!({
     ///    "sub": "user_42",
@@ -277,7 +275,7 @@ impl Issuer {
     /// # Examples
     ///
     /// ```
-    /// use sd_jwt::{Issuer, KeyForEncoding};
+    /// use sdjwt::{Issuer, KeyForEncoding};
     ///
     /// const ISSUER_SIGNING_KEY_PEM: &str = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDSwzyVZp2AIxS3\n802n0AfwKsMUcMYATMM6kK5VVS21ku3d6QC8kfhvJ0Pcb24dmGUWAJ95H9m19qDF\nbLrVZ9b4iobOsNlXNhKn4TRrsVFa8EaGXAJjGNRPPcL+gFwfV9y3tfR00tkokhR5\nZhhMifwKJf55QlEzY96yyk8ISzhagwO6Kf/E980Eoby1tvhX8q8HIwLG4GjFnmXx\nbKqxVQR1T07vFKHsF1MK8/d6a7+samHPWjoSlLvKSE4rdK8gouRpN/5Who4iS2s7\nlhfS2DcnxCnxj9S9BBm4GIQNk0Tc+lR20btBm+JiehAyEV9vX222BVSLUC9z9HGD\nk39b9ezbAgMBAAECggEBAIXuRxtxX/jDUjEqzVgsXD8EDX95wnkCTrVypzXWsPtH\naRyxKiSqZcLMotT7gnAQHXyD3NMtqD13geazF27xU6wQ62WBADvpQqWn+JXO0jIF\nqetLoMC0UIYiaz0q+F96h+m+GJ/8NL8RRS138U0CCkWwqysHN25+sk/PO7W7hw4M\nOAN/97rBkXqyzJJSvNwl2A66ga+9WC8G/9YgweqkS6re6WAyo4z1KyZAE1r655JR\nEaiIR6GYvahNsy/dNjVtGR189o8bf6xnTPbDUXQ/D61nO3Kg3B7Ca/uQWiDbI9VJ\nMXZxgip9Q7Qil9WuK1vVCUSf6WK38NV6r9fubw/DgsECgYEA70drCiGrC3pvIJF0\nLJL46H6x6SFClR876BZEnN51udJGXRstWV+Ya6NULSTykwusaTYUnr2BC6r3tT4S\nrRLfnXTaI0Tr6Bws6kBSJJC0CS0lLqK2tlKbcypQXv0T6Ulv2NXDq0VqQB3txED6\n8m5GieppHNueqLQqGqM1V4JYw5ECgYEA4X2s7ccLB8MX01j4T6Fnj4BGaZsyc1kV\nn6VHsuAsUxA9ZuwV+lk5k6xaWxDYmQR3xZ4XcQEntRUtGFu4TMLVpCcK26Vqafrp\nymbGjJGFagIaP9YOhQ+5ZMfO0obYUEaDGhPjXH3G9O/dTXoRg5nP5JvdcAnf853y\nm1BaYBHbG6sCgYAfVkQffI9RHoTFSCdl2w28LTORq6hzrTaES75KqRvT7UUH1pJW\n3R0yI57XlroqJeI7mTiUHY9z/r0YQHvjrNAaZ/5VliYrLN15BFl9rnHVrdLry6WQ\nNTtklssV1aEw8UwzorNQj/O9V+4WwMfczjJwx4FipSSfRZEqEevffROw8QKBgGNK\nba0+KjM+yuz7jkuyLOHZgCfcePilz4m+w7WWVK42xnLdnkfgpiPKjvbukhG/D+Zq\n2LOf6JYqPvMs4Bic6mof7v4M9rC4Fd5UJzWaln65ckmNvlMFO4OPIBk/21xt0CjZ\nfRIrKEKOpIoLKE8kmZB2uakuD/k8IaoWVdVbx3mFAoGAMFFWZAAHpB18WaATQRR6\n86JnudPD3TlOw+8Zw4tlOoGv4VXCPVsyAH8CWNSONyTRxeSJpe8Pn6ZvPJ7YBt6c\nchNSaqFIl9UnkMJ1ckE7EX2zKFCg3k8VzqYRLC9TcqqwKTJcNdRu1SbWkAds6Sd8\nKKRrCm+L44uQ01gUYvYYv5c=\n-----END PRIVATE KEY-----\n";
     ///
