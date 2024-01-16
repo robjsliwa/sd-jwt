@@ -8,6 +8,8 @@ pub mod header;
 pub mod holder;
 pub mod issuer;
 pub mod jwk;
+#[cfg(feature = "noring")]
+pub(crate) mod registries;
 mod utils;
 pub mod validation;
 pub mod verifier;

@@ -2,8 +2,10 @@
 pub mod common_test_utils {
     use base64::Engine;
     use rand::rngs::OsRng;
+    use rsa::pkcs1::EncodeRsaPublicKey;
+    use rsa::pkcs8::EncodePrivateKey;
     use rsa::PublicKeyParts;
-    use rsa::{pkcs1::ToRsaPublicKey, pkcs8::ToPrivateKey, RsaPrivateKey, RsaPublicKey};
+    use rsa::{RsaPrivateKey, RsaPublicKey};
     use serde_json::value::{Map, Value};
     use std::collections::HashSet;
 
@@ -21,8 +23,11 @@ pub mod common_test_utils {
         public_key: RsaPublicKey,
     ) -> (String, String) {
         (
-            private_key.to_pkcs8_pem().unwrap().to_string(),
-            public_key.to_pkcs1_pem().unwrap(),
+            private_key
+                .to_pkcs8_pem(rsa::pkcs8::LineEnding::CR)
+                .unwrap()
+                .to_string(),
+            public_key.to_pkcs1_pem(rsa::pkcs1::LineEnding::CR).unwrap(),
         )
     }
 

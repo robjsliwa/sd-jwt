@@ -1,6 +1,12 @@
 use serde_json::Error as SerdeError;
 use thiserror::Error;
 
+#[cfg(feature = "ring")]
+use jsonwebtoken::errors::Error as JwtError;
+
+#[cfg(feature = "noring")]
+use jsonwebtoken_rustcrypto::errors::Error as JwtError;
+
 #[derive(Error, Debug)]
 pub enum Error {
     #[error("failed to form disclosuer")]
@@ -8,7 +14,7 @@ pub enum Error {
     #[error("invalid disclosure key {0}")]
     InvalidDisclosureKey(String),
     #[error("encoding key error")]
-    EncodingKeyError(#[from] jsonwebtoken::errors::Error),
+    EncodingKeyError(#[from] JwtError),
     #[error("invalid path pointer to disclosure")]
     InvalidPathPointer,
     #[error("invalid path pointer array index")]
@@ -31,4 +37,10 @@ pub enum Error {
     KeyBindingJWTRequired,
     #[error("KB-JWT parameter missing: {0}")]
     KeyBindingJWTParameterMissing(String),
+    #[error("RSA PKCS1 error")]
+    RsaError(#[from] rsa::pkcs1::Error),
+    #[error("RSA PKCS8 error")]
+    RsaPkcs8Error(#[from] rsa::pkcs8::Error),
+    #[error("UTF8 conversion error")]
+    Utf8Error(#[from] std::str::Utf8Error),
 }

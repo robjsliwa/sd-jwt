@@ -1,9 +1,15 @@
 use crate::Error;
 use std::ops::{Deref, DerefMut};
 
+#[cfg(feature = "ring")]
+use jsonwebtoken::jwk::Jwk as JwtJwk;
+
+#[cfg(feature = "noring")]
+use crate::registries::Jwk as JwtJwk;
+
 #[derive(Debug, Clone)]
 pub struct Jwk {
-    jwk: jsonwebtoken::jwk::Jwk,
+    jwk: JwtJwk,
 }
 
 impl Jwk {
@@ -15,7 +21,7 @@ impl Jwk {
 }
 
 impl Deref for Jwk {
-    type Target = jsonwebtoken::jwk::Jwk;
+    type Target = JwtJwk;
 
     fn deref(&self) -> &Self::Target {
         &self.jwk

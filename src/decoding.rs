@@ -1,5 +1,20 @@
 use crate::{Algorithm, Error, Validation};
-use jsonwebtoken::DecodingKey;
+#[cfg(feature = "noring")]
+use base64::Engine;
+#[cfg(feature = "ring")]
+use jsonwebtoken::{
+    decode as jwt_decode, Algorithm as JwtAlgorithm, DecodingKey, Validation as JwtValidation,
+};
+
+#[cfg(feature = "noring")]
+use jsonwebtoken_rustcrypto::{
+    decode as jwt_decode, Algorithm as JwtAlgorithm, DecodingKey, Validation as JwtValidation,
+};
+#[cfg(feature = "noring")]
+use rsa::PublicKeyParts;
+#[cfg(feature = "noring")]
+use rsa::{pkcs1::DecodeRsaPublicKey, RsaPublicKey};
+
 use serde_json::Value;
 
 #[derive(Clone)]
@@ -20,10 +35,23 @@ impl KeyForDecoding {
         })
     }
 
+    #[cfg(feature = "ring")]
     pub fn from_rsa_pem(key: &[u8]) -> Result<Self, Error> {
         Ok(KeyForDecoding {
             key: DecodingKey::from_rsa_pem(key)?,
         })
+    }
+
+    #[cfg(feature = "noring")]
+    pub fn from_rsa_pem(key: &[u8]) -> Result<Self, Error> {
+        let rsa_key = RsaPublicKey::from_pkcs1_pem(std::str::from_utf8(key)?)?;
+
+        let modulus =
+            base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(rsa_key.n().to_bytes_be());
+        let exponent =
+            base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(rsa_key.e().to_bytes_be());
+
+        Self::from_rsa_components(&modulus, &exponent)
     }
 
     pub fn from_rsa_components(modulus: &str, exponent: &str) -> Result<Self, Error> {
@@ -32,30 +60,35 @@ impl KeyForDecoding {
         })
     }
 
+    #[cfg(feature = "ring")]
     pub fn from_ec_pem(key: &[u8]) -> Result<Self, Error> {
         Ok(KeyForDecoding {
             key: DecodingKey::from_ec_pem(key)?,
         })
     }
 
+    #[cfg(feature = "ring")]
     pub fn from_ed_pem(key: &[u8]) -> Result<Self, Error> {
         Ok(KeyForDecoding {
             key: DecodingKey::from_ed_pem(key)?,
         })
     }
 
+    #[cfg(feature = "ring")]
     pub fn from_rsa_der(der: &[u8]) -> Self {
         KeyForDecoding {
             key: DecodingKey::from_rsa_der(der),
         }
     }
 
+    #[cfg(feature = "ring")]
     pub fn from_ec_der(der: &[u8]) -> Self {
         KeyForDecoding {
             key: DecodingKey::from_ec_der(der),
         }
     }
 
+    #[cfg(feature = "ring")]
     pub fn from_ed_der(der: &[u8]) -> Self {
         KeyForDecoding {
             key: DecodingKey::from_ed_der(der),
@@ -63,21 +96,23 @@ impl KeyForDecoding {
     }
 }
 
-fn build_validation(validation: &Validation) -> jsonwebtoken::Validation {
-    let mut valid = jsonwebtoken::Validation::new(match validation.algorithms {
-        Algorithm::HS256 => jsonwebtoken::Algorithm::HS256,
-        Algorithm::HS384 => jsonwebtoken::Algorithm::HS384,
-        Algorithm::HS512 => jsonwebtoken::Algorithm::HS512,
-        Algorithm::RS256 => jsonwebtoken::Algorithm::RS256,
-        Algorithm::RS384 => jsonwebtoken::Algorithm::RS384,
-        Algorithm::RS512 => jsonwebtoken::Algorithm::RS512,
-        Algorithm::ES256 => jsonwebtoken::Algorithm::ES256,
-        Algorithm::ES384 => jsonwebtoken::Algorithm::ES384,
-        Algorithm::PS256 => jsonwebtoken::Algorithm::PS256,
-        Algorithm::PS384 => jsonwebtoken::Algorithm::PS384,
-        Algorithm::PS512 => jsonwebtoken::Algorithm::PS512,
-        Algorithm::EdDSA => jsonwebtoken::Algorithm::EdDSA,
+#[cfg(feature = "ring")]
+fn build_validation(validation: &Validation) -> JwtValidation {
+    let mut valid = JwtValidation::new(match validation.algorithms {
+        Algorithm::HS256 => JwtAlgorithm::HS256,
+        Algorithm::HS384 => JwtAlgorithm::HS384,
+        Algorithm::HS512 => JwtAlgorithm::HS512,
+        Algorithm::RS256 => JwtAlgorithm::RS256,
+        Algorithm::RS384 => JwtAlgorithm::RS384,
+        Algorithm::RS512 => JwtAlgorithm::RS512,
+        Algorithm::ES256 => JwtAlgorithm::ES256,
+        Algorithm::ES384 => JwtAlgorithm::ES384,
+        Algorithm::PS256 => JwtAlgorithm::PS256,
+        Algorithm::PS384 => JwtAlgorithm::PS384,
+        Algorithm::PS512 => JwtAlgorithm::PS512,
+        Algorithm::EdDSA => JwtAlgorithm::EdDSA,
     });
+
     valid.required_spec_claims = validation.required_spec_claims.clone();
     valid.leeway = validation.leeway;
     valid.validate_exp = validation.validate_exp;
@@ -89,13 +124,39 @@ fn build_validation(validation: &Validation) -> jsonwebtoken::Validation {
     valid
 }
 
+#[cfg(feature = "noring")]
+fn build_validation(validation: &Validation) -> JwtValidation {
+    let mut valid = JwtValidation::new(match validation.algorithms {
+        Algorithm::HS256 => JwtAlgorithm::HS256,
+        Algorithm::HS384 => JwtAlgorithm::HS384,
+        Algorithm::HS512 => JwtAlgorithm::HS512,
+        Algorithm::RS256 => JwtAlgorithm::RS256,
+        Algorithm::RS384 => JwtAlgorithm::RS384,
+        Algorithm::RS512 => JwtAlgorithm::RS512,
+        Algorithm::ES256 => JwtAlgorithm::ES256,
+        Algorithm::ES384 => JwtAlgorithm::ES384,
+        Algorithm::PS256 => JwtAlgorithm::PS256,
+        Algorithm::PS384 => JwtAlgorithm::PS384,
+        Algorithm::PS512 => JwtAlgorithm::PS512,
+        Algorithm::EdDSA => JwtAlgorithm::EdDSA,
+    });
+
+    valid.leeway = validation.leeway;
+    valid.validate_exp = validation.validate_exp;
+    valid.validate_nbf = validation.validate_nbf;
+    valid.aud = validation.aud.clone();
+    valid.iss = validation.iss.clone().and_then(|mut hs| hs.drain().next());
+    valid.sub = validation.sub.clone();
+    valid
+}
+
 pub fn decode(
     token: &str,
     key: &KeyForDecoding,
     validation: &Validation,
 ) -> Result<(Value, Value), Error> {
     let validation = build_validation(validation);
-    let token_data = jsonwebtoken::decode(token, &key.key, &validation)?;
+    let token_data = jwt_decode(token, &key.key, &validation)?;
     let header: Value = serde_json::from_str(&serde_json::to_string(&token_data.header)?)?;
     Ok((header, token_data.claims))
 }
@@ -124,7 +185,9 @@ mod tests {
     use super::*;
     use chrono::{Duration, Utc};
     use rand::rngs::OsRng;
-    use rsa::{pkcs1::ToRsaPublicKey, pkcs8::ToPrivateKey, RsaPrivateKey, RsaPublicKey};
+    use rsa::pkcs1::EncodeRsaPublicKey;
+    use rsa::pkcs8::EncodePrivateKey;
+    use rsa::{RsaPrivateKey, RsaPublicKey};
 
     const TEST_CLAIMS: &str = r#"{
         "sub": "user_42",
@@ -158,8 +221,11 @@ mod tests {
 
     fn convert_to_pem(private_key: RsaPrivateKey, public_key: RsaPublicKey) -> (String, String) {
         (
-            private_key.to_pkcs8_pem().unwrap().to_string(),
-            public_key.to_pkcs1_pem().unwrap(),
+            private_key
+                .to_pkcs8_pem(rsa::pkcs8::LineEnding::CR)
+                .unwrap()
+                .to_string(),
+            public_key.to_pkcs1_pem(rsa::pkcs1::LineEnding::CR).unwrap(),
         )
     }
 
