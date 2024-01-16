@@ -9,8 +9,10 @@ use jsonwebtoken::{
 #[cfg(feature = "noring")]
 use jsonwebtoken_rustcrypto::{
     encode as jwt_encode,
-    headers::{JwtHeader, X509Headers},
-    Algorithm as JwtAlgorithm, EncodingKey,
+    // headers::{JwtHeader, X509Headers},
+    Algorithm as JwtAlgorithm,
+    EncodingKey,
+    Header as JwtHeader,
 };
 #[cfg(feature = "noring")]
 use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
@@ -23,12 +25,14 @@ pub struct KeyForEncoding {
 }
 
 impl KeyForEncoding {
+    #[cfg(feature = "ring")]
     pub fn from_secret(secret: &[u8]) -> Self {
         KeyForEncoding {
             key: EncodingKey::from_secret(secret),
         }
     }
 
+    #[cfg(feature = "ring")]
     pub fn from_base64_secret(secret: &str) -> Result<Self, Error> {
         Ok(KeyForEncoding {
             key: EncodingKey::from_base64_secret(secret)?,
@@ -122,10 +126,10 @@ fn build_header(header: &Header) -> Result<JwtHeader, Error> {
 
 #[cfg(feature = "noring")]
 fn build_header(header: &Header) -> Result<JwtHeader, Error> {
-    let jwk = match &header.jwk {
-        Some(jwk) => Some(serde_json::from_value(jwk.clone())?),
-        None => None,
-    };
+    // let jwk = match &header.jwk {
+    //     Some(jwk) => Some(serde_json::from_value(jwk.clone())?),
+    //     None => None,
+    // };
 
     let alg = match header.alg {
         Algorithm::HS256 => JwtAlgorithm::HS256,
@@ -139,30 +143,31 @@ fn build_header(header: &Header) -> Result<JwtHeader, Error> {
         Algorithm::PS256 => JwtAlgorithm::PS256,
         Algorithm::PS384 => JwtAlgorithm::PS384,
         Algorithm::PS512 => JwtAlgorithm::PS512,
-        Algorithm::EdDSA => JwtAlgorithm::EdDSA,
+        // Algorithm::EdDSA => JwtAlgorithm::EdDSA,
+        _ => unimplemented!(),
     };
 
     let mut jwt_header = JwtHeader::new(alg);
-    jwt_header.general_headers.typ = header.typ.clone();
-    jwt_header.jwk_set_headers.jku = header.jku.clone();
-    jwt_header.jwk_set_headers.kid = header.kid.clone();
-    jwt_header.general_headers.cty = header.cty.clone();
-    jwt_header.jwk_set_headers.jwk = jwk;
+    jwt_header.typ = header.typ.clone();
+    jwt_header.jku = header.jku.clone();
+    jwt_header.kid = header.kid.clone();
+    jwt_header.cty = header.cty.clone();
+    // jwt_header.jwk_set_headers.jwk = jwk;
 
-    let mut x509_headers = None;
-    if header.x5u.is_some()
-        || header.x5c.is_some()
-        || header.x5t.is_some()
-        || header.x5t_s256.is_some()
-    {
-        x509_headers = Some(Box::new(X509Headers {
-            x5u: header.x5u.clone(),
-            x5c: header.x5c.clone(),
-            x5t: header.x5t.clone(),
-            x5t_s256: header.x5t_s256.clone(),
-        }));
-    }
-    jwt_header.x509_headers = x509_headers;
+    // let mut x509_headers = None;
+    // if header.x5u.is_some()
+    //     || header.x5c.is_some()
+    //     || header.x5t.is_some()
+    //     || header.x5t_s256.is_some()
+    // {
+    //     x509_headers = Some(Box::new(X509Headers {
+    //         x5u: header.x5u.clone(),
+    //         x5c: header.x5c.clone(),
+    //         x5t: header.x5t.clone(),
+    //         x5t_s256: header.x5t_s256.clone(),
+    //     }));
+    // }
+    // jwt_header.x509_headers = x509_headers;
 
     Ok(jwt_header)
 }

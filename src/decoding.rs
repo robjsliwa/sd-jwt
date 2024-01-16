@@ -23,12 +23,14 @@ pub struct KeyForDecoding {
 }
 
 impl KeyForDecoding {
+    #[cfg(feature = "ring")]
     pub fn from_secret(secret: &[u8]) -> Self {
         KeyForDecoding {
             key: DecodingKey::from_secret(secret),
         }
     }
 
+    #[cfg(feature = "ring")]
     pub fn from_base64_secret(secret: &str) -> Result<Self, Error> {
         Ok(KeyForDecoding {
             key: DecodingKey::from_base64_secret(secret)?,
@@ -138,7 +140,8 @@ fn build_validation(validation: &Validation) -> JwtValidation {
         Algorithm::PS256 => JwtAlgorithm::PS256,
         Algorithm::PS384 => JwtAlgorithm::PS384,
         Algorithm::PS512 => JwtAlgorithm::PS512,
-        Algorithm::EdDSA => JwtAlgorithm::EdDSA,
+        // Algorithm::EdDSA => JwtAlgorithm::EdDSA,
+        _ => unimplemented!(),
     });
 
     valid.leeway = validation.leeway;

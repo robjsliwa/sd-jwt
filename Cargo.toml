@@ -21,7 +21,7 @@ chrono = "0.4.31"
 rsa = "0.8"
 getrandom = { version = "0.2.12", features = ["js"] }
 
-jsonwebtoken-rustcrypto = { git = "https://github.com/JadedBlueEyes/jsonwebtoken", rev = "a7758b0", optional = true }
+jsonwebtoken-rustcrypto = { version = "1.2.0", optional = true }
 serde_plain = { version = "1.0.2", optional = true }
 
 jsonwebtoken = { version = "9.2.0", optional = true }
