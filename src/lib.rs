@@ -8,6 +8,7 @@ pub mod header;
 pub mod holder;
 pub mod issuer;
 pub mod jwk;
+mod parser;
 #[cfg(feature = "noring")]
 pub(crate) mod registries;
 mod utils;
@@ -27,5 +28,6 @@ pub use header::*;
 pub use holder::*;
 pub use issuer::*;
 pub use jwk::*;
+pub use parser::parse_yaml;
 pub use validation::*;
 pub use verifier::*;
