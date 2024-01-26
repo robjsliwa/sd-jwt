@@ -43,4 +43,8 @@ pub enum Error {
     RsaPkcs8Error(#[from] rsa::pkcs8::Error),
     #[error("UTF8 conversion error")]
     Utf8Error(#[from] std::str::Utf8Error),
+    #[error("YAML parsing error")]
+    YamlError(#[from] serde_yaml::Error),
+    #[error("YAML invalid sd tag: {0}")]
+    YamlInvalidSDTag(String),
 }

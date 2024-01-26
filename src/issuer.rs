@@ -4,6 +4,7 @@ use crate::Header;
 use crate::Jwk;
 use crate::{encode, KeyForEncoding};
 use chrono::{Duration, Utc};
+use core::slice::Iter;
 use serde::Serialize;
 use serde_json::Value;
 use std::ops::Deref;
@@ -258,6 +259,53 @@ impl Issuer {
     /// ```
     pub fn require_key_binding(&mut self, key_binding_pubkey: Jwk) -> &mut Self {
         self.key_binding_pubkey = Some(key_binding_pubkey);
+        self
+    }
+
+    /// Marks claims as disclosable.
+    /// This method is useful when you want to mark multiple claims as disclosable.
+    /// It accepts an iterator of claim paths.
+    ///
+    /// # Arguments
+    /// * `path_iter` - An iterator of claim paths.
+    ///
+    /// # Returns
+    /// A mutable reference to the issuer for method chaining.
+    ///
+    /// # Examples
+    /// ```
+    /// use sdjwt::Issuer;
+    ///
+    /// let claims = serde_json::json!({
+    ///   "sub": "user_42",
+    ///  "given_name": "John",
+    /// "family_name": "Doe",
+    /// "email": "johndoe@example",
+    /// "address": {
+    ///   "street_address": "123 Main St",
+    ///  "locality": "Anytown",
+    /// "region": "Anystate",
+    /// "country": "US"
+    /// },
+    /// "nationalities": [
+    ///  "US",
+    /// "DE"
+    /// ]
+    /// });
+    ///
+    /// let mut issuer = Issuer::new(claims).unwrap();
+    /// issuer.iter_disclosable(vec![
+    ///     "/given_name".to_string(),
+    ///     "/family_name".to_string(),
+    ///     "/address/street_address".to_string(),
+    ///     "/address/locality".to_string(),
+    ///     "/nationalities/0".to_string(),
+    ///     "/nationalities/1".to_string()].iter());
+    /// ```
+    pub fn iter_disclosable(&mut self, path_iter: Iter<String>) -> &mut Self {
+        path_iter.for_each(|path| {
+            self.disclosable(path);
+        });
         self
     }
 
