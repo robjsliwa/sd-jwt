@@ -148,7 +148,7 @@ fn build_validation(validation: &Validation) -> JwtValidation {
     valid.validate_exp = validation.validate_exp;
     valid.validate_nbf = validation.validate_nbf;
     valid.aud = validation.aud.clone();
-    valid.iss = validation.iss.clone().and_then(|mut hs| hs.drain().next());
+    valid.iss = validation.iss.clone();
     valid.sub = validation.sub.clone();
     valid
 }
