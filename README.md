@@ -76,6 +76,40 @@ fn main() -> Result<(), Error> {
 }
 ```
 
+Issuer can also create claims using YAML and marking selective disclosures with !sd tag.
+
+Example:
+```rust
+const ISSUER_CLAIMS_YAML: &str = r#"
+    sub: user_42
+    !sd given_name: John
+    !sd family_name: Doe
+    email: johndoe@example.com
+    phone_number: +1-202-555-0101
+    phone_number_verified: true
+    address:
+        !sd street_address: 123 Main St
+        !sd locality: Anytown
+        region: Anystate
+        country: US
+    birthdate: 1940-01-01
+    updated_at: 1570000000
+    nationalities:
+        - !sd US
+        - !sd DE
+    "#;
+
+let (claims, tagged_paths) = parse_yaml(TEST_CLAIMS_YAML)?;
+let mut issuer = Issuer::new(claims)?;
+let issuer_sd_jwt = issuer
+    .require_key_binding(Jwk::from_value(holder_jwk)?)
+    .iter_disclosable(tagged_paths.iter())
+    .encode(&KeyForEncoding::from_rsa_pem(
+        issuer_private_key.as_bytes(),
+    )?)?;
+println!("issuer_sd_jwt: {:?}", issuer_sd_jwt);
+```
+
 ## Holder
 
 The Holder module represents a Holder, presenting SD-JWT including selected disclosures.
