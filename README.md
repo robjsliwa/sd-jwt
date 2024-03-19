@@ -142,7 +142,7 @@ Example
         .encode(&KeyForEncoding::from_rsa_pem(
             ISSUER_SIGNING_KEY_PEM.as_bytes(),
         ).unwrap()).unwrap();
-        println!("Encoded JWT: {}", encoded_jwt);
+    println!("Encoded JWT: {}", encoded_jwt);
 ```
 
 ## Holder
