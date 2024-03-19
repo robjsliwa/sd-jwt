@@ -4,6 +4,8 @@ use crate::Header;
 use crate::Jwk;
 use crate::{encode, KeyForEncoding};
 use chrono::{Duration, Utc};
+use rand::{Rng, SeedableRng, rngs::StdRng};
+use rand::seq::SliceRandom;
 use core::slice::Iter;
 use serde::Serialize;
 use serde_json::Value;
@@ -82,6 +84,7 @@ pub struct Issuer {
     disclosable_claim_paths: Vec<String>,
     header: Header,
     key_binding_pubkey: Option<Jwk>,
+    max_decoys: Option<i32>,
 }
 
 impl Issuer {
@@ -114,6 +117,7 @@ impl Issuer {
             disclosable_claim_paths: Vec::new(),
             header: Header::default(),
             key_binding_pubkey: None,
+            max_decoys: None,
         })
     }
 
@@ -159,6 +163,36 @@ impl Issuer {
     /// ```
     pub fn disclosable(&mut self, path: &str) -> &mut Self {
         self.disclosable_claim_paths.push(path.to_string());
+        self
+    }
+
+    /// Adds a random number of decoys to payload
+    ///
+    /// # Arguments
+    ///
+    /// * `max_decoys` - An integer representing the maximum number of decoys to add to the payload.
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to the issuer for method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sdjwt::Issuer;
+    ///
+    /// let claims = serde_json::json!({
+    ///    "sub": "user_42",
+    ///    "given_name": "John",
+    ///    "family_name": "Doe",
+    ///    "email": "johndoe@example",
+    /// });
+    ///
+    /// let issuer = Issuer::new(claims).unwrap()
+    ///     .decoy(6);
+    /// ```
+    pub fn decoy(&mut self, max_decoys: i32) -> &mut Self {
+        self.max_decoys = Some(max_decoys);
         self
     }
 
@@ -351,6 +385,7 @@ impl Issuer {
     ///     .disclosable("/address/locality")
     ///     .disclosable("/nationalities/0")
     ///     .disclosable("/nationalities/1")
+    ///     .decoy(6)
     ///     .encode(&KeyForEncoding::from_rsa_pem(
     ///         ISSUER_SIGNING_KEY_PEM.as_bytes(),
     ///     ).unwrap()).unwrap();
@@ -363,7 +398,22 @@ impl Issuer {
             .iter()
             .map(|disclosable_claim| build_disclosure(&mut updated_claims, disclosable_claim))
             .collect();
-        let disclosures = disclosures?;
+        let mut disclosures = disclosures?; 
+    
+        if let Some(max_decoys) = self.max_decoys {
+            let decoy_count = rand::thread_rng().gen_range(1..max_decoys+1);
+            for _ in 0..decoy_count {
+                let decoy_digest: Result<Disclosure, Error> = build_decoys(&mut updated_claims);
+                disclosures.push(decoy_digest?);
+            }
+        }
+
+        let mut rng = rand::thread_rng();
+        let sd_array = updated_claims
+            .get_mut("_sd")
+            .and_then(Value::as_array_mut)
+            .ok_or(Error::InvalidPathPointer)?;
+        sd_array.shuffle(&mut rng);
 
         if !disclosures.is_empty() {
             let algorithm = disclosures[0].get_algorithm().to_string();
@@ -437,6 +487,22 @@ fn build_disclosure(claims: &mut Value, disclosable_claim: &str) -> Result<Discl
     Ok(disclosure)
 }
 
+fn build_decoys(claims: &mut Value) -> Result<Disclosure, Error> {
+    let seed: [u8; 32] = rand::random();
+    let mut rng = StdRng::from_seed(seed);
+    let random_number: u32 = rng.gen();
+
+    let disclosure = Disclosure::new(None, Value::from(random_number)).build()?;
+
+    let sd_array = claims
+        .get_mut("_sd")
+        .and_then(Value::as_array_mut)
+        .ok_or(Error::InvalidPathPointer)?;
+    sd_array.push(Value::from(disclosure.digest().as_str()));
+
+    Ok(disclosure)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -489,6 +555,24 @@ mod tests {
         Ok(())
     }
 
+    fn encode_and_test_multiple_decoys(
+        issuer: &mut Issuer,
+        issuer_private_key: &str,
+        minimum_disclosures: usize,
+        maximum_disclosures: usize,
+    ) -> Result<(), Error> {
+        let encoded = issuer.encode(&KeyForEncoding::from_rsa_pem(
+            issuer_private_key.as_bytes(),
+        )?)?;
+        println!("encoded: {:?}", encoded);
+        let dot_segments = encoded.split('.').count();
+        let disclosure_segments = encoded.split('~').count() - 2;
+        
+        assert_eq!(dot_segments, 3);
+        assert!(disclosure_segments <= maximum_disclosures && disclosure_segments >= minimum_disclosures);
+        Ok(())
+    }
+
     #[test]
     fn test_encode_objects() -> Result<(), Error> {
         let (mut issuer, issuer_private_key) = setup_common();
@@ -529,5 +613,29 @@ mod tests {
             .disclosable("/nationalities/1")
             .require_key_binding(Jwk::from_value(holder_jwk)?);
         encode_and_test(&mut issuer, &issuer_private_key, 6)
+    }
+
+    #[test]
+    fn test_encode_objects_with_single_decoy() -> Result<(), Error> {
+        let (mut issuer, issuer_private_key) = setup_common();
+        issuer
+            .disclosable("/given_name")
+            .disclosable("/family_name")
+            .disclosable("/address/street_address")
+            .disclosable("/address/locality")
+            .decoy(1);
+        encode_and_test(&mut issuer, &issuer_private_key, 5)
+    }
+
+    #[test]
+    fn test_encode_objects_with_multiple_decoys() -> Result<(), Error> {
+        let (mut issuer, issuer_private_key) = setup_common();
+        issuer
+            .disclosable("/given_name")
+            .disclosable("/family_name")
+            .disclosable("/address/street_address")
+            .disclosable("/address/locality")
+            .decoy(10);
+        encode_and_test_multiple_decoys(&mut issuer, &issuer_private_key, 5, 14)
     }
 }
