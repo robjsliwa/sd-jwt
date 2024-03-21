@@ -2,9 +2,10 @@ use crate::Disclosure;
 use crate::Error;
 use crate::Header;
 use crate::Jwk;
+use crate::Decoy;
 use crate::{encode, KeyForEncoding};
 use chrono::{Duration, Utc};
-use rand::{Rng, SeedableRng, rngs::StdRng};
+use rand::Rng;
 use rand::seq::SliceRandom;
 use core::slice::Iter;
 use serde::Serialize;
@@ -398,14 +399,11 @@ impl Issuer {
             .iter()
             .map(|disclosable_claim| build_disclosure(&mut updated_claims, disclosable_claim))
             .collect();
-        let mut disclosures = disclosures?; 
+        let disclosures = disclosures?; 
     
         if let Some(max_decoys) = self.max_decoys {
             let decoy_count = rand::thread_rng().gen_range(1..max_decoys+1);
-            for _ in 0..decoy_count {
-                let decoy_digest: Result<Disclosure, Error> = build_decoys(&mut updated_claims);
-                disclosures.push(decoy_digest?);
-            }
+            build_decoys(&mut updated_claims, decoy_count)?;
         }
 
         let mut rng = rand::thread_rng();
@@ -487,20 +485,22 @@ fn build_disclosure(claims: &mut Value, disclosable_claim: &str) -> Result<Discl
     Ok(disclosure)
 }
 
-fn build_decoys(claims: &mut Value) -> Result<Disclosure, Error> {
-    let seed: [u8; 32] = rand::random();
-    let mut rng = StdRng::from_seed(seed);
-    let random_number: u32 = rng.gen();
-
-    let disclosure = Disclosure::new(None, Value::from(random_number)).build()?;
+fn build_decoys(claims: &mut Value, decoy_count: i32) -> Result<Vec<Decoy>, Error> {
+    let mut decoy_list = Vec::<Decoy>::new();
+    for _ in 0..decoy_count {
+        let new_decoy = Decoy::new().build()?;
+        decoy_list.push(new_decoy);
+    }
 
     let sd_array = claims
         .get_mut("_sd")
         .and_then(Value::as_array_mut)
         .ok_or(Error::InvalidPathPointer)?;
-    sd_array.push(Value::from(disclosure.digest().as_str()));
+    decoy_list.iter().for_each(|decoy| {
+        sd_array.push(Value::from(decoy.digest().as_str()));
+    });
 
-    Ok(disclosure)
+    Ok(decoy_list)
 }
 
 #[cfg(test)]
@@ -555,24 +555,6 @@ mod tests {
         Ok(())
     }
 
-    fn encode_and_test_multiple_decoys(
-        issuer: &mut Issuer,
-        issuer_private_key: &str,
-        minimum_disclosures: usize,
-        maximum_disclosures: usize,
-    ) -> Result<(), Error> {
-        let encoded = issuer.encode(&KeyForEncoding::from_rsa_pem(
-            issuer_private_key.as_bytes(),
-        )?)?;
-        println!("encoded: {:?}", encoded);
-        let dot_segments = encoded.split('.').count();
-        let disclosure_segments = encoded.split('~').count() - 2;
-        
-        assert_eq!(dot_segments, 3);
-        assert!(disclosure_segments <= maximum_disclosures && disclosure_segments >= minimum_disclosures);
-        Ok(())
-    }
-
     #[test]
     fn test_encode_objects() -> Result<(), Error> {
         let (mut issuer, issuer_private_key) = setup_common();
@@ -624,7 +606,7 @@ mod tests {
             .disclosable("/address/street_address")
             .disclosable("/address/locality")
             .decoy(1);
-        encode_and_test(&mut issuer, &issuer_private_key, 5)
+        encode_and_test(&mut issuer, &issuer_private_key, 4)
     }
 
     #[test]
@@ -636,6 +618,6 @@ mod tests {
             .disclosable("/address/street_address")
             .disclosable("/address/locality")
             .decoy(10);
-        encode_and_test_multiple_decoys(&mut issuer, &issuer_private_key, 5, 14)
+        encode_and_test(&mut issuer, &issuer_private_key, 4)
     }
 }
