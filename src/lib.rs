@@ -11,6 +11,7 @@ pub mod jwk;
 mod parser;
 #[cfg(feature = "noring")]
 pub(crate) mod registries;
+pub(crate) mod decoy;
 mod utils;
 pub mod validation;
 pub mod verifier;
