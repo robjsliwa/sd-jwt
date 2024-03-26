@@ -2,7 +2,7 @@ use crate::Disclosure;
 use crate::Error;
 use crate::Header;
 use crate::Jwk;
-use crate::Decoy;
+use crate::decoy::Decoy;
 use crate::{encode, KeyForEncoding};
 use chrono::{Duration, Utc};
 use rand::Rng;

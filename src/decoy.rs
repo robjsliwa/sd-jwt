@@ -35,3 +35,28 @@ impl Decoy {
         &self.digest
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_algorothm() {
+        let decoy = Decoy::new();
+        assert_eq!(decoy.algorithm, HashAlgorithm::SHA256);
+    }
+
+    #[test]
+    fn test_build() {
+        let decoy = Decoy::new().build().unwrap();
+        assert!(!decoy.digest.is_empty());
+    }
+
+    #[test]
+    fn test_random_digest() {
+        let decoy1 = Decoy::new().build().unwrap();
+        let decoy2 = Decoy::new().build().unwrap();
+        assert_ne!(decoy1.digest(), decoy2.digest());
+    }
+
+}
