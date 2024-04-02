@@ -23,6 +23,7 @@ Key features include:
 - Marking claims as disclosable.
 - Optionally requiring a key binding.
 - Encoding the issuer's claims into a SD-JWT.
+- Randomly adding decoy digests.
 
 Example:
 ```rust
@@ -108,6 +109,40 @@ let issuer_sd_jwt = issuer
         issuer_private_key.as_bytes(),
     )?)?;
 println!("issuer_sd_jwt: {:?}", issuer_sd_jwt);
+```
+
+Issuer can add a random number of decoy digests.
+
+Example
+```rust
+    let claims = serde_json::json!({
+        "sub": "user_42",
+        "given_name": "John",
+        "family_name": "Doe",
+        "email": "johndoe@example",
+        "address": {
+            "street_address": "123 Main St",
+            "locality": "Anytown",
+            "region": "Anystate",
+            "country": "US"
+        },
+        "nationalities": [
+            "US",
+            "DE"
+        ]
+    });
+    let encoded_jwt = Issuer::new(claims).unwrap()
+        .disclosable("/given_name")
+        .disclosable("/family_name")
+        .disclosable("/address/street_address")
+        .disclosable("/address/locality")
+        .disclosable("/nationalities/0")
+        .disclosable("/nationalities/1")
+        .decoy(6)
+        .encode(&KeyForEncoding::from_rsa_pem(
+            ISSUER_SIGNING_KEY_PEM.as_bytes(),
+        ).unwrap()).unwrap();
+    println!("Encoded JWT: {}", encoded_jwt);
 ```
 
 ## Holder
