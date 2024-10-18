@@ -1,11 +1,6 @@
+use jwt_rustcrypto::Error as JwtError;
 use serde_json::Error as SerdeError;
 use thiserror::Error;
-
-#[cfg(feature = "ring")]
-use jsonwebtoken::errors::Error as JwtError;
-
-#[cfg(feature = "noring")]
-use jsonwebtoken_rustcrypto::errors::Error as JwtError;
 
 #[derive(Error, Debug)]
 pub enum Error {

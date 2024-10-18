@@ -1,17 +1,21 @@
 use base64::Engine;
-use rand::rngs::OsRng;
-use rsa::pkcs1::EncodeRsaPublicKey;
+use rsa::pkcs1v15::SigningKey;
 use rsa::pkcs8::EncodePrivateKey;
-use rsa::PublicKeyParts;
+use rsa::pkcs8::EncodePublicKey;
+use rsa::signature::Keypair;
+use rsa::traits::PublicKeyParts;
 use rsa::{RsaPrivateKey, RsaPublicKey};
 use serde_json::value::{Map, Value};
+use sha2::Sha256;
 use std::collections::HashSet;
 
 pub fn keys() -> (RsaPrivateKey, RsaPublicKey) {
-    let mut rng = OsRng;
+    let mut rng = rand::thread_rng();
+
     let bits = 2048;
-    let private_key = RsaPrivateKey::new(&mut rng, bits).unwrap();
-    let public_key = RsaPublicKey::from(&private_key);
+    let private_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
+    let signing_key = SigningKey::<Sha256>::new(private_key.clone());
+    let public_key = signing_key.verifying_key().into();
 
     (private_key, public_key)
 }
@@ -19,10 +23,12 @@ pub fn keys() -> (RsaPrivateKey, RsaPublicKey) {
 pub fn convert_to_pem(private_key: RsaPrivateKey, public_key: RsaPublicKey) -> (String, String) {
     (
         private_key
-            .to_pkcs8_pem(rsa::pkcs8::LineEnding::CR)
+            .to_pkcs8_pem(rsa::pkcs8::LineEnding::LF)
             .unwrap()
             .to_string(),
-        public_key.to_pkcs1_pem(rsa::pkcs1::LineEnding::CR).unwrap(),
+        public_key
+            .to_public_key_pem(rsa::pkcs1::LineEnding::LF)
+            .unwrap(),
     )
 }
 

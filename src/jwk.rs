@@ -1,11 +1,6 @@
 use crate::Error;
+use jwt_rustcrypto::Jwk as JwtJwk;
 use std::ops::{Deref, DerefMut};
-
-#[cfg(feature = "ring")]
-use jsonwebtoken::jwk::Jwk as JwtJwk;
-
-#[cfg(feature = "noring")]
-use crate::registries::Jwk as JwtJwk;
 
 #[derive(Debug, Clone)]
 pub struct Jwk {

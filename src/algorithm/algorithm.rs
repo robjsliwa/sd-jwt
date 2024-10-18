@@ -6,7 +6,9 @@ pub enum Algorithm {
     HS384,
     HS512,
     ES256,
+    ES256K,
     ES384,
+    ES512,
     #[default]
     RS256,
     RS384,
@@ -14,5 +16,4 @@ pub enum Algorithm {
     PS256,
     PS384,
     PS512,
-    EdDSA,
 }

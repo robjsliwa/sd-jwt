@@ -14,6 +14,7 @@ pub struct Header {
     pub x5c: Option<Vec<String>>,
     pub x5t: Option<String>,
     pub x5t_s256: Option<String>,
+    pub crit: Option<Vec<String>>,
 }
 
 impl Header {
@@ -29,6 +30,7 @@ impl Header {
             x5c: None,
             x5t: None,
             x5t_s256: None,
+            crit: None,
         }
     }
 }
