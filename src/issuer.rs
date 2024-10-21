@@ -1,13 +1,13 @@
+use crate::decoy::Decoy;
 use crate::Disclosure;
 use crate::Error;
 use crate::Header;
 use crate::Jwk;
-use crate::decoy::Decoy;
 use crate::{encode, KeyForEncoding};
 use chrono::{Duration, Utc};
-use rand::Rng;
-use rand::seq::SliceRandom;
 use core::slice::Iter;
+use rand::seq::SliceRandom;
+use rand::Rng;
 use serde::Serialize;
 use serde_json::Value;
 use std::ops::Deref;
@@ -399,10 +399,10 @@ impl Issuer {
             .iter()
             .map(|disclosable_claim| build_disclosure(&mut updated_claims, disclosable_claim))
             .collect();
-        let disclosures = disclosures?; 
-    
+        let disclosures = disclosures?;
+
         if let Some(max_decoys) = self.max_decoys {
-            let decoy_count = rand::thread_rng().gen_range(1..max_decoys+1);
+            let decoy_count = rand::thread_rng().gen_range(1..max_decoys + 1);
             build_decoys(&mut updated_claims, decoy_count)?;
         }
 

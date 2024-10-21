@@ -3,6 +3,7 @@ use crate::{
     utils::{drop_kb, remove_digests, restore_disclosures},
     Error, HashAlgorithm, Jwk, KeyForDecoding, Validation,
 };
+use base64::Engine;
 use serde_json::Value;
 
 /// # Verifier Module
@@ -23,8 +24,8 @@ use serde_json::Value;
 /// const PRESENTATION: &str = "eyJ0eXAiOiJzZC1qd3QiLCJhbGciOiJSUzI1NiJ9.eyJfc2QiOlsiYlQzVnNrcVBwc0F1RWJ5VXBVb0o1UVVZaFp6TkZWSWw5TUhkN0hiWjNOSSIsInRWam9RWW1iT2FUOEt6YmRTMFpmUTdUTlU2UFlmV1RxQU1nNVlOUVJ1OUEiXSwiX3NkX2FsZyI6InNoYS0yNTYiLCJhZGRyZXNzIjp7Il9zZCI6WyJ5WC13SXRkMmk1M2pCaV9jeHk3TE5Wd1J6Mm84ajlyd1IxQVJnVVFtVm9vIiwiQi14a3FHNzRvQzFCOUdheDlqQWZTWlVtQlBrVldhVmR1QVBSYlJkWHIyYyJdLCJjb3VudHJ5IjoiVVMiLCJyZWdpb24iOiJBbnlzdGF0ZSJ9LCJiaXJ0aGRhdGUiOiIxOTQwLTAxLTAxIiwiY25mIjp7ImFsZyI6IlJTMjU2IiwiZSI6IkFRQUIiLCJrdHkiOiJSU0EiLCJuIjoiMFEta0s0aGZQbzZsMmFvVzlWUHR6S2hTaV9iN2t6ZTZ6eTlfVThTZjFsRmdxUGIwVXBvRTNuTW4zRUpyc0Jfb1hhb1RmY0RxaG4zTi1EblRFUFFmSTBfRTdnaHc3M0g1TWxiREdZM2VyajdzamE0enFIbmUyX1BZRnJvTFd3V0tjZDMzbUQ3VzhVYTdVSGV1a21GekFreXFEZlp1b0ZRcFdYLTFaVVdnalc0LUpoUUtYSXB4NVF6U1ZDX1hwaUFibzN3Zk5jQlFaaE8xSGxlTDV3VnFyMVZrUTgxcXl6Tlo3UFVRTWd0VlJGdkIyX3lPTlBDZ3piVzQ0TGNVQUFzYk5HNkdyX095WlBvblhuQml3b085LUxnNXdoQVc1TnlkU2ZwVi05UzE0NjV3Nm9IenpxdU1DX0JhcUQ5WVFTZ2pPVXpJb21fc3lYZG5GSTNyWWRZaG93IiwidXNlIjoic2lnIn0sImVtYWlsIjoiam9obmRvZUBleGFtcGxlLmNvbSIsImV4cCI6MTcwMzg2NDkxMSwibmF0aW9uYWxpdGllcyI6W3siLi4uIjoiRDVSLXVQVEhMaTVFNVJqWEJwaW5Ia0VfV1Jxckl0UVFndnFyYWpEZ3ZPTSJ9LHsiLi4uIjoiNTJwZGc4enYtQ1RLT3U1bDhnVUpRalNKQ0I2dHF0NVJ1dUk5WkRESTJCdyJ9XSwicGhvbmVfbnVtYmVyIjoiKzEtMjAyLTU1NS0wMTAxIiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjp0cnVlLCJzdWIiOiJ1c2VyXzQyIiwidXBkYXRlZF9hdCI6MTU3MDAwMDAwMH0.aziX_zt4VylvCt4b_ILZacHQYWGFGsMUd0KEVgg4qtj8JwljDoL8845eHjV1ldpBp7hyWnkrV1X7ZtM7WK1F987ntNv5hK9o-5C2H18UpYKI9YZz5f8yETkWBmu9sH5HKtPv0lstJFc-kQB-jKRyidMxhwO_MU_oR_UtjpIjVd6atRLrwlud4ZM-un8R2R209au8TIE4JIAyzJA1IC5NTR4FdCcwGJiodj62lGRVpmvWhQspxtA9aGKSrnx0x8rL82_dE0hBrRkq5cfbiPR5GM1BN7FtA68OrWK9STHCAaH3VQxe0htOg3o8wlQ6rPMIP5B1Oc0932K56bGwXDZPCg~WyJGSjNhS2JyaWNONUdZRGQtdVk2dGVnIiwiZ2l2ZW5fbmFtZSIsIkpvaG4iXQ~WyItQkFxQ2VJN0kzVUdaREJQR1RNcUpRIiwibG9jYWxpdHkiLCJBbnl0b3duIl0~WyI2RF8zUFpoSlQxTHVDR3o2WTVOMjVBIiwiREUiXQ~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJodHRwczovL3NvbWVvbmUuZXhhbXBsZS5jb20iLCJpYXQiOjE3MDM4NjQ4NTEsIm5vbmNlIjoiODEzOWN2ZUdVTjFKQW1QTllGeWg5eTdqWmZab2VMZXIiLCJzZF9oYXNoIjoidUU1MTY0eTVqZ1NFNWg1V2FiUFpnU0lLWDFOX015Ti1qMlJhNnE3NDJ0ayJ9.BtYvadr-iT6poH9DQV5xAJxAxIFFsNRJ6AQ1rrGySpCVZ-1Dg7a9mvkP3Tf7dJ-r8O-cndJEaUaiKXSFZW7H8j-wO3hp0hrEqlp9OpCNON2EnwUrSm_XLFUFe-MinJZDMZ3qJeCLk7-AMvOgEHXHautwA3Sj2W_G4oDtH05tEHdy50lTVSblqINOLTdy8Vkz82Hs1WW7CVeUOQbsGbKNNAPczTDf00fQg18n6nGmpkHp7rgMV-Sq4qV2qxDeuXE00AkgPAzcMRyCx3Gk7NSWn9NtkTPK9Bporf58r_p5hf4lp-RoqRT0Uza1d5FcaoONl9GtLnhYURLKlCo9yhCbOA";
 ///
 /// fn main() -> Result<(), Error> {
-///     let validation = Validation::default().no_exp();
-///     let mut kb_validation = Validation::default().no_exp();
+///     let validation = Validation::default().without_expiry();
+///     let mut kb_validation = Validation::default().without_expiry();
 ///     let mut audience = HashSet::new();
 ///     audience.insert("https://someone.example.com".to_string());
 ///     kb_validation.aud = Some(audience);
@@ -110,8 +111,8 @@ impl Verifier {
     /// const PRESENTATION: &str = "eyJ0eXAiOiJzZC1qd3QiLCJhbGciOiJSUzI1NiJ9.eyJfc2QiOlsiYlQzVnNrcVBwc0F1RWJ5VXBVb0o1UVVZaFp6TkZWSWw5TUhkN0hiWjNOSSIsInRWam9RWW1iT2FUOEt6YmRTMFpmUTdUTlU2UFlmV1RxQU1nNVlOUVJ1OUEiXSwiX3NkX2FsZyI6InNoYS0yNTYiLCJhZGRyZXNzIjp7Il9zZCI6WyJ5WC13SXRkMmk1M2pCaV9jeHk3TE5Wd1J6Mm84ajlyd1IxQVJnVVFtVm9vIiwiQi14a3FHNzRvQzFCOUdheDlqQWZTWlVtQlBrVldhVmR1QVBSYlJkWHIyYyJdLCJjb3VudHJ5IjoiVVMiLCJyZWdpb24iOiJBbnlzdGF0ZSJ9LCJiaXJ0aGRhdGUiOiIxOTQwLTAxLTAxIiwiY25mIjp7ImFsZyI6IlJTMjU2IiwiZSI6IkFRQUIiLCJrdHkiOiJSU0EiLCJuIjoiMFEta0s0aGZQbzZsMmFvVzlWUHR6S2hTaV9iN2t6ZTZ6eTlfVThTZjFsRmdxUGIwVXBvRTNuTW4zRUpyc0Jfb1hhb1RmY0RxaG4zTi1EblRFUFFmSTBfRTdnaHc3M0g1TWxiREdZM2VyajdzamE0enFIbmUyX1BZRnJvTFd3V0tjZDMzbUQ3VzhVYTdVSGV1a21GekFreXFEZlp1b0ZRcFdYLTFaVVdnalc0LUpoUUtYSXB4NVF6U1ZDX1hwaUFibzN3Zk5jQlFaaE8xSGxlTDV3VnFyMVZrUTgxcXl6Tlo3UFVRTWd0VlJGdkIyX3lPTlBDZ3piVzQ0TGNVQUFzYk5HNkdyX095WlBvblhuQml3b085LUxnNXdoQVc1TnlkU2ZwVi05UzE0NjV3Nm9IenpxdU1DX0JhcUQ5WVFTZ2pPVXpJb21fc3lYZG5GSTNyWWRZaG93IiwidXNlIjoic2lnIn0sImVtYWlsIjoiam9obmRvZUBleGFtcGxlLmNvbSIsImV4cCI6MTcwMzg2NDkxMSwibmF0aW9uYWxpdGllcyI6W3siLi4uIjoiRDVSLXVQVEhMaTVFNVJqWEJwaW5Ia0VfV1Jxckl0UVFndnFyYWpEZ3ZPTSJ9LHsiLi4uIjoiNTJwZGc4enYtQ1RLT3U1bDhnVUpRalNKQ0I2dHF0NVJ1dUk5WkRESTJCdyJ9XSwicGhvbmVfbnVtYmVyIjoiKzEtMjAyLTU1NS0wMTAxIiwicGhvbmVfbnVtYmVyX3ZlcmlmaWVkIjp0cnVlLCJzdWIiOiJ1c2VyXzQyIiwidXBkYXRlZF9hdCI6MTU3MDAwMDAwMH0.aziX_zt4VylvCt4b_ILZacHQYWGFGsMUd0KEVgg4qtj8JwljDoL8845eHjV1ldpBp7hyWnkrV1X7ZtM7WK1F987ntNv5hK9o-5C2H18UpYKI9YZz5f8yETkWBmu9sH5HKtPv0lstJFc-kQB-jKRyidMxhwO_MU_oR_UtjpIjVd6atRLrwlud4ZM-un8R2R209au8TIE4JIAyzJA1IC5NTR4FdCcwGJiodj62lGRVpmvWhQspxtA9aGKSrnx0x8rL82_dE0hBrRkq5cfbiPR5GM1BN7FtA68OrWK9STHCAaH3VQxe0htOg3o8wlQ6rPMIP5B1Oc0932K56bGwXDZPCg~WyJGSjNhS2JyaWNONUdZRGQtdVk2dGVnIiwiZ2l2ZW5fbmFtZSIsIkpvaG4iXQ~WyItQkFxQ2VJN0kzVUdaREJQR1RNcUpRIiwibG9jYWxpdHkiLCJBbnl0b3duIl0~WyI2RF8zUFpoSlQxTHVDR3o2WTVOMjVBIiwiREUiXQ~eyJ0eXAiOiJrYitqd3QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJodHRwczovL3NvbWVvbmUuZXhhbXBsZS5jb20iLCJpYXQiOjE3MDM4NjQ4NTEsIm5vbmNlIjoiODEzOWN2ZUdVTjFKQW1QTllGeWg5eTdqWmZab2VMZXIiLCJzZF9oYXNoIjoidUU1MTY0eTVqZ1NFNWg1V2FiUFpnU0lLWDFOX015Ti1qMlJhNnE3NDJ0ayJ9.BtYvadr-iT6poH9DQV5xAJxAxIFFsNRJ6AQ1rrGySpCVZ-1Dg7a9mvkP3Tf7dJ-r8O-cndJEaUaiKXSFZW7H8j-wO3hp0hrEqlp9OpCNON2EnwUrSm_XLFUFe-MinJZDMZ3qJeCLk7-AMvOgEHXHautwA3Sj2W_G4oDtH05tEHdy50lTVSblqINOLTdy8Vkz82Hs1WW7CVeUOQbsGbKNNAPczTDf00fQg18n6nGmpkHp7rgMV-Sq4qV2qxDeuXE00AkgPAzcMRyCx3Gk7NSWn9NtkTPK9Bporf58r_p5hf4lp-RoqRT0Uza1d5FcaoONl9GtLnhYURLKlCo9yhCbOA";
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let validation = Validation::default().no_exp();
-    ///     let mut kb_validation = Validation::default().no_exp();
+    ///     let validation = Validation::default().without_expiry();
+    ///     let mut kb_validation = Validation::default().without_expiry();
     ///     let mut audience = HashSet::new();
     ///     audience.insert("https://someone.example.com".to_string());
     ///     kb_validation.aud = Some(audience);
@@ -159,15 +160,17 @@ pub fn verify_kb(
             "Issuer SD JWT cnf claim must contain RSA key".to_string(),
         ));
     }
-    let e = kb_jwk["e"].as_str().ok_or(Error::SDJWTRejected(
+    let e_str = kb_jwk["e"].as_str().ok_or(Error::SDJWTRejected(
         "Issuer SD JWT cnf claim must contain RSA key, invalid exponent".to_string(),
     ))?;
-    let n = kb_jwk["n"].as_str().ok_or(Error::SDJWTRejected(
+    let n_str = kb_jwk["n"].as_str().ok_or(Error::SDJWTRejected(
         "Issuer SD JWT cnf claim must contain RSA key, invalid modulus".to_string(),
     ))?;
+    let n = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(n_str)?;
+    let e = base64::engine::general_purpose::URL_SAFE_NO_PAD.decode(e_str)?;
     let (header, claims) = decode(
         kb_jwt,
-        &KeyForDecoding::from_rsa_components(n, e)?,
+        &KeyForDecoding::from_rsa_components(&n, &e)?,
         validation,
     )?;
 
@@ -331,7 +334,7 @@ mod tests {
 
         // Verifier verifies presentation
         let validation = Validation::default();
-        let mut kb_validation = Validation::default().no_exp();
+        let mut kb_validation = Validation::default().without_expiry();
         let mut audience = HashSet::new();
         audience.insert("https://someone.example.com".to_string());
         kb_validation.aud = Some(audience);

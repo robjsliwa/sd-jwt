@@ -192,7 +192,7 @@ fn test_presentation_verification_with_kb() -> Result<(), Error> {
 
     // Verifier verifies presentation
     let validation = Validation::default();
-    let mut kb_validation = Validation::default().no_exp();
+    let mut kb_validation = Validation::default().without_expiry();
     let mut audience = HashSet::new();
     audience.insert("https://someone.example.com".to_string());
     kb_validation.aud = Some(audience);
@@ -289,7 +289,7 @@ fn test_issue_claims_with_yaml() -> Result<(), Error> {
 
     // Verifier verifies presentation
     let validation = Validation::default();
-    let mut kb_validation = Validation::default().no_exp();
+    let mut kb_validation = Validation::default().without_expiry();
     let mut audience = HashSet::new();
     audience.insert("https://someone.example.com".to_string());
     kb_validation.aud = Some(audience);
