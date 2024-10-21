@@ -1,5 +1,6 @@
 pub mod algorithm;
 pub mod decoding;
+pub(crate) mod decoy;
 pub mod disclosure;
 pub mod disclosure_path;
 pub mod encoding;
@@ -9,9 +10,6 @@ pub mod holder;
 pub mod issuer;
 pub mod jwk;
 mod parser;
-#[cfg(feature = "noring")]
-pub(crate) mod registries;
-pub(crate) mod decoy;
 mod utils;
 pub mod validation;
 pub mod verifier;

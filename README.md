@@ -10,6 +10,14 @@ Add the following to Cargo.toml:
 sdjwt = "0.7.0"
 ```
 
+# Supported Algorithms
+
+The library supports the following signing and verifying algorithms:
+
+- **HMAC**: `HS256`, `HS384`, `HS512`
+- **RSA**: `RS256`, `RS384`, `RS512`, `PS256`, `PS384`, `PS512`
+- **ECDSA**: `ES256`, `ES256K`, `ES384`, `ES512`
+
 # How to use
 
 There are three use cases: Issuer, Holder, and Verifier.

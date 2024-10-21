@@ -1,6 +1,6 @@
 [package]
 name = "sdjwt"
-version = "0.7.3"
+version = "0.8.0"
 authors = ["Rob Sliwa <robjsliwa@gmail.com>"]
 license = "MIT"
 readme = "README.md"

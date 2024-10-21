@@ -1,6 +1,6 @@
 use crate::algorithm::{base64_hash, HashAlgorithm};
 use crate::Error;
-use rand::{Rng, SeedableRng, rngs::StdRng};
+use rand::{rngs::StdRng, Rng, SeedableRng};
 
 #[derive(Debug, Clone)]
 pub struct Decoy {
@@ -18,7 +18,7 @@ impl Decoy {
         }
     }
 
-    pub fn build(self) -> Result<Decoy,Error> {
+    pub fn build(self) -> Result<Decoy, Error> {
         let seed: [u8; 32] = rand::random();
         let mut rng = StdRng::from_seed(seed);
         let random_number: u32 = rng.gen();
@@ -58,5 +58,4 @@ mod tests {
         let decoy2 = Decoy::new().build().unwrap();
         assert_ne!(decoy1.digest(), decoy2.digest());
     }
-
 }

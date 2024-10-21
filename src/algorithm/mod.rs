@@ -1,5 +1,5 @@
-pub mod algorithm;
+pub mod algorithms;
 pub mod hashalgorithm;
 
-pub use algorithm::*;
+pub use algorithms::*;
 pub use hashalgorithm::*;
