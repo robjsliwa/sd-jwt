@@ -1,14 +1,6 @@
 # sd-jwt
 
-This crate implement draft of [SD-JWT](https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/), currently at version 7.
-
-# Installation
-
-Add the following to Cargo.toml:
-
-```
-sdjwt = "0.7.0"
-```
+This crate implements draft of [SD-JWT](https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/).
 
 # Supported Algorithms
 
