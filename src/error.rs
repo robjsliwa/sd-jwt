@@ -1,6 +1,8 @@
 use jwt_rustcrypto::Error as JwtError;
 use serde_json::Error as SerdeError;
 use thiserror::Error;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsValue;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -42,4 +44,15 @@ pub enum Error {
     YamlError(#[from] serde_yaml::Error),
     #[error("YAML invalid sd tag: {0}")]
     YamlInvalidSDTag(String),
+
+    #[cfg(target_arch = "wasm32")]
+    #[error("WasmJsValueConversionFailed {0}")]
+    WasmJsValueConversionFailed(#[from] serde_wasm_bindgen::Error),
+}
+
+#[cfg(target_arch = "wasm32")]
+impl From<Error> for JsValue {
+    fn from(val: Error) -> Self {
+        JsValue::from_str(&val.to_string())
+    }
 }
