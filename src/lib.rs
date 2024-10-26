@@ -96,6 +96,23 @@ impl SdJwtHolder {
         };
         Ok(to_value(&decoded_issuer_jwt)?)
     }
+
+    #[wasm_bindgen]
+    pub fn presentation(
+        &self,
+        encoded_issuer_jwt: &str,
+        redacted_paths: Vec<String>,
+    ) -> Result<String, JsValue> {
+        let mut presentation = Holder::presentation(encoded_issuer_jwt)?;
+        let _ = redacted_paths
+            .iter()
+            .try_for_each::<_, Result<(), Error>>(|path| {
+                presentation.redact(path)?;
+                Ok(())
+            });
+
+        Ok(presentation.build()?)
+    }
 }
 
 #[cfg(target_arch = "wasm32")]

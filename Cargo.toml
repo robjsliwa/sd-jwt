@@ -29,4 +29,3 @@ crate-type = ["cdylib", "rlib"]
 
 [profile.release]
 lto = true
-
