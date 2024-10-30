@@ -122,6 +122,55 @@ impl Default for SdJwtHolder {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DecodedHolderJwt {
+    pub header: Value,
+    pub restored_claims: Value,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+pub struct SdJwtVerifier {}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
+impl SdJwtVerifier {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        SdJwtVerifier {}
+    }
+
+    #[wasm_bindgen]
+    pub fn verify(
+        &self,
+        holder_presentation_sdjwt: &str,
+        public_key: &str,
+        algorithm: &str,
+    ) -> Result<JsValue, JsValue> {
+        let decoding_key = match algorithm {
+            "RS256" | "RS384" | "RS512" => KeyForDecoding::from_rsa_pem(public_key.as_bytes())?,
+            "ES256" | "ES384" | "ES512" => KeyForDecoding::from_ec_pem(public_key.as_bytes())?,
+            _ => return Err(JsValue::from_str("Unsupported algorithm")),
+        };
+        let validation = Validation::default().without_expiry();
+        let (header, restored_claims) =
+            Verifier::verify(holder_presentation_sdjwt, &decoding_key, &validation, &None)?;
+        let decoded_holder_jwt = DecodedHolderJwt {
+            header,
+            restored_claims,
+        };
+        Ok(to_value(&decoded_holder_jwt)?)
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl Default for SdJwtVerifier {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub mod algorithm;
 pub mod decoding;
 pub(crate) mod decoy;

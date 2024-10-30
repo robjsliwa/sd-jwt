@@ -1,7 +1,7 @@
 use crate::{
     base64_hash, decode, sd_jwt_parts,
     utils::{drop_kb, remove_digests, restore_disclosures},
-    Error, HashAlgorithm, Jwk, KeyForDecoding, Validation,
+    Error, HashAlgorithm, KeyForDecoding, Validation,
 };
 use base64::Engine;
 use serde_json::Value;
@@ -62,8 +62,6 @@ impl Verifier {
                 "Key binding JWT must be included if cnf claim is included".to_string(),
             ));
         }
-
-        let _ = Jwk::from_value(claims["cnf"].clone())?;
 
         let hash_alg = match HashAlgorithm::try_from(claims["_sd_alg"].as_str().ok_or(
             Error::SDJWTRejected("Issuer SD JWT must contain _sd_alg claim".to_string()),
