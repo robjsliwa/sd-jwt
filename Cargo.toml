@@ -5,10 +5,13 @@ authors = ["Rob Sliwa <robjsliwa@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 description = "SD-JWT support for Issuers, Holders, and Verifiers"
-homepage = "https://github.com/robjsliwa/sd-jwt"
+homepage = "https://www.sd-jwt.info"
 repository = "https://github.com/robjsliwa/sd-jwt"
 keywords = ["sd-jwt", "sdjwt", "token", "sd_jwt"]
 edition = "2021"
+
+[package.metadata.docs.rs]
+readme = true
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
