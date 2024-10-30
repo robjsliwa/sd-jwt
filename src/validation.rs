@@ -1,6 +1,3 @@
-// This is based on https://github.com/Keats/jsonwebtoken/blob/master/src/validation.rs and is used
-// to provide facade for underlying JWT library set the validation parameters for the JWT.
-
 use crate::Algorithm;
 use std::collections::HashSet;
 

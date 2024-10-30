@@ -1,6 +1,7 @@
 use crate::Disclosure;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DisclosurePath {
     pub path: String,
     pub disclosure: Disclosure,

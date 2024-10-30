@@ -1,8 +1,10 @@
 use crate::Error;
 use base64::Engine;
 use rand::{thread_rng, Rng};
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256, Sha384, Sha512};
 use std::convert::TryFrom;
+use std::fmt;
 
 pub(crate) fn generate_salt(len: usize) -> String {
     let mut salt = vec![0u8; len];
@@ -10,19 +12,19 @@ pub(crate) fn generate_salt(len: usize) -> String {
     base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(salt)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum HashAlgorithm {
     SHA256,
     SHA384,
     SHA512,
 }
 
-impl ToString for HashAlgorithm {
-    fn to_string(&self) -> String {
+impl fmt::Display for HashAlgorithm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            HashAlgorithm::SHA256 => "sha-256".to_string(),
-            HashAlgorithm::SHA384 => "sha-384".to_string(),
-            HashAlgorithm::SHA512 => "sha-512".to_string(),
+            HashAlgorithm::SHA256 => write!(f, "sha-256"),
+            HashAlgorithm::SHA384 => write!(f, "sha-384"),
+            HashAlgorithm::SHA512 => write!(f, "sha-512"),
         }
     }
 }

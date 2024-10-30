@@ -1,12 +1,13 @@
 use crate::algorithm::{base64_hash, generate_salt, HashAlgorithm};
 use crate::error::Error;
 use base64::Engine;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 const ARRAY_DISCLOSURE_LEN: usize = 2;
 const OBJECT_DISCLOSURE_LEN: usize = 3;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Disclosure {
     disclosure: String,
     digest: String,
